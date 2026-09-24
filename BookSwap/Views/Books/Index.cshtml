@@ -13,39 +13,50 @@
 <table class="table">
     <thead>
         <tr>
-            <th>
-                Cover
-            </th>
+            <th>Cover</th>
+
             <th>
                 @Html.DisplayNameFor(model => model.Title)
             </th>
+
             <th>
                 @Html.DisplayNameFor(model => model.Author)
             </th>
+
             <th>
                 @Html.DisplayNameFor(model => model.Genre)
             </th>
+
             <th>
                 @Html.DisplayNameFor(model => model.PublicationYear)
             </th>
+
             <th>
                 @Html.DisplayNameFor(model => model.Publisher)
             </th>
+
             <th>
                 @Html.DisplayNameFor(model => model.ISBN)
             </th>
+
             <th>
                 @Html.DisplayNameFor(model => model.Language)
             </th>
+
             <th>
                 @Html.DisplayNameFor(model => model.Description)
             </th>
+
             <th>
                 @Html.DisplayNameFor(model => model.Condition)
             </th>
+
             <th>
                 @Html.DisplayNameFor(model => model.City)
             </th>
+
+            <th>Owner</th>
+
             <th></th>
         </tr>
     </thead>
@@ -73,32 +84,52 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.Title)
                 </td>
+
                 <td>
                     @Html.DisplayFor(modelItem => item.Author)
                 </td>
+
                 <td>
                     @Html.DisplayFor(modelItem => item.Genre)
                 </td>
+
                 <td>
                     @Html.DisplayFor(modelItem => item.PublicationYear)
                 </td>
+
                 <td>
                     @Html.DisplayFor(modelItem => item.Publisher)
                 </td>
+
                 <td>
                     @Html.DisplayFor(modelItem => item.ISBN)
                 </td>
+
                 <td>
                     @Html.DisplayFor(modelItem => item.Language)
                 </td>
+
                 <td>
                     @Html.DisplayFor(modelItem => item.Description)
                 </td>
+
                 <td>
                     @Html.DisplayFor(modelItem => item.Condition)
                 </td>
+
                 <td>
                     @Html.DisplayFor(modelItem => item.City)
+                </td>
+
+                <td>
+                    @if (item.User != null)
+                    {
+                        @($"{item.User.FirstName} {item.User.LastName}")
+                    }
+                    else
+                    {
+                        <span>No owner</span>
+                    }
                 </td>
 
                 <td>

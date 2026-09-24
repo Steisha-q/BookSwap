@@ -22,5 +22,6 @@ namespace BookSwap.Models
 
         [Display(Name = "Registration Date")]
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
+        public ICollection<Book> Books { get; set; } = new List<Book>();
     }
 }

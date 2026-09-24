@@ -31,5 +31,10 @@ namespace BookSwap.Models
 
         [Display(Name = "Book Cover")]
         public string? ImagePath { get; set; }
+
+        [Display(Name = "Owner")]
+        public int UserId { get; set; }
+
+        public User? User { get; set; }
     }
 }

@@ -17,6 +17,7 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="UserId" />
 
             <!-- Зберігаємо шлях до поточної обкладинки -->
             <input type="hidden" asp-for="ImagePath" />
@@ -94,6 +95,15 @@
                 <label asp-for="City" class="control-label"></label>
                 <input asp-for="City" class="form-control" />
                 <span asp-validation-for="City" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Owner</label>
+
+                <input type="text"
+                       class="form-control"
+                       value="@(Model.User != null ? $"{Model.User.FirstName} {Model.User.LastName}" : "No owner")"
+                       readonly />
             </div>
 
             <!-- Нова обкладинка -->

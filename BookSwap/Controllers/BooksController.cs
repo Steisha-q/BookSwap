@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using BookSwap.Models;
 
 public class BooksController : Controller
@@ -18,7 +19,10 @@ public class BooksController : Controller
     // GET: Books
     public async Task<IActionResult> Index()
     {
-        return View(await _context.Book.ToListAsync());
+        var books = _context.Book
+            .Include(b => b.User);
+
+        return View(await books.ToListAsync());
     }
 
     // GET: Books/Details/5
@@ -30,7 +34,8 @@ public class BooksController : Controller
         }
 
         var book = await _context.Book
-            .FirstOrDefaultAsync(m => m.Id == id);
+    .Include(b => b.User)
+    .FirstOrDefaultAsync(m => m.Id == id);
 
         if (book == null)
         {
@@ -43,6 +48,12 @@ public class BooksController : Controller
     // GET: Books/Create
     public IActionResult Create()
     {
+        ViewData["UserId"] = new SelectList(
+        _context.User,
+        "Id",
+        "Email"
+    );
+
         return View();
     }
 
@@ -50,7 +61,7 @@ public class BooksController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(
-        [Bind("Id,Title,Author,Genre,PublicationYear,Publisher,ISBN,Language,Description,Condition,City")]
+        [Bind("Id,Title,Author,Genre,PublicationYear,Publisher,ISBN,Language,Description,Condition,City,UserId")]
         Book book,
         IFormFile? imageFile)
     {
@@ -88,6 +99,12 @@ public class BooksController : Controller
 
             return RedirectToAction(nameof(Index));
         }
+        ViewData["UserId"] = new SelectList(
+    _context.User,
+    "Id",
+    "Email",
+    book.UserId
+);
 
         return View(book);
     }
@@ -100,7 +117,9 @@ public class BooksController : Controller
             return NotFound();
         }
 
-        var book = await _context.Book.FindAsync(id);
+        var book = await _context.Book
+            .Include(b => b.User)
+            .FirstOrDefaultAsync(b => b.Id == id);
 
         if (book == null)
         {
@@ -115,8 +134,8 @@ public class BooksController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(
         int? id,
-        [Bind("Id,Title,Author,Genre,PublicationYear,Publisher,ISBN,Language,Description,Condition,City,ImagePath")]
-        Book book,
+        [Bind("Id,Title,Author,Genre,PublicationYear,Publisher,ISBN,Language,Description,Condition,City")]
+    Book book,
         IFormFile? imageFile)
     {
         if (id != book.Id)
@@ -128,6 +147,24 @@ public class BooksController : Controller
         {
             try
             {
+                var existingBook = await _context.Book.FindAsync(id);
+
+                if (existingBook == null)
+                {
+                    return NotFound();
+                }
+
+                existingBook.Title = book.Title;
+                existingBook.Author = book.Author;
+                existingBook.Genre = book.Genre;
+                existingBook.PublicationYear = book.PublicationYear;
+                existingBook.Publisher = book.Publisher;
+                existingBook.ISBN = book.ISBN;
+                existingBook.Language = book.Language;
+                existingBook.Description = book.Description;
+                existingBook.Condition = book.Condition;
+                existingBook.City = book.City;
+
                 if (imageFile != null && imageFile.Length > 0)
                 {
                     string uploadsFolder = Path.Combine(
@@ -136,6 +173,18 @@ public class BooksController : Controller
                         "books");
 
                     Directory.CreateDirectory(uploadsFolder);
+
+                    if (!string.IsNullOrEmpty(existingBook.ImagePath))
+                    {
+                        string oldImagePath = Path.Combine(
+                            _webHostEnvironment.WebRootPath,
+                            existingBook.ImagePath.TrimStart('/'));
+
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
 
                     string uniqueFileName =
                         Guid.NewGuid().ToString() +
@@ -152,10 +201,10 @@ public class BooksController : Controller
                         await imageFile.CopyToAsync(fileStream);
                     }
 
-                    book.ImagePath = "/images/books/" + uniqueFileName;
+                    existingBook.ImagePath =
+                        "/images/books/" + uniqueFileName;
                 }
 
-                _context.Update(book);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
@@ -171,8 +220,12 @@ public class BooksController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        book.User = await _context.User
+            .FirstOrDefaultAsync(u => u.Id == book.UserId);
+
         return View(book);
     }
+
 
     // GET: Books/Delete/5
     public async Task<IActionResult> Delete(int? id)
@@ -183,6 +236,7 @@ public class BooksController : Controller
         }
 
         var book = await _context.Book
+            .Include(b => b.User)
             .FirstOrDefaultAsync(m => m.Id == id);
 
         if (book == null)
@@ -193,6 +247,7 @@ public class BooksController : Controller
         return View(book);
     }
 
+
     // POST: Books/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
@@ -202,7 +257,6 @@ public class BooksController : Controller
 
         if (book != null)
         {
-            // Delete image from wwwroot
             if (!string.IsNullOrEmpty(book.ImagePath))
             {
                 string imagePath = Path.Combine(
@@ -222,6 +276,7 @@ public class BooksController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+
 
     private bool BookExists(int? id)
     {
